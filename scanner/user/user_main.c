@@ -10,19 +10,14 @@ static void request_scan(void);
 static void scan_done_cb(void* arg, STATUS status);
 static void init_done_cb(void);
 
-
+static char buf[100];
 
 static void scan_done_cb (void* arg, STATUS status)
 {
-    uart1_sendStr_no_wait("Scan done:\n\r");
-
     struct bss_info *bssInfo = (struct bss_info*)arg;
     bssInfo = STAILQ_NEXT(bssInfo, next);
 
-    static char buf[200];
-
     while (bssInfo != NULL) {
-        bzero(buf, sizeof(buf));
         os_sprintf(buf, "%-32s %02X:%02X:%02X:%02X:%02X:%02X, ch %2d, auth %d, hid %d, rssi %d\n\r", 
                    bssInfo->ssid, 
                    bssInfo->bssid[0], bssInfo->bssid[1], bssInfo->bssid[2],
@@ -31,7 +26,9 @@ static void scan_done_cb (void* arg, STATUS status)
                    bssInfo->authmode, bssInfo->is_hidden,
                    bssInfo->rssi);
         uart1_sendStr_no_wait(buf);
-        os_delay_us(10000);
+        while (!UART_CheckOutputFinished(UART1, 100)) {
+            os_delay_us(100);
+        }
         bssInfo = STAILQ_NEXT(bssInfo, next);
     }
 
@@ -54,7 +51,7 @@ static void request_scan()
 
 static void init_done_cb()
 {
-    uart1_sendStr_no_wait("System init done, scanning for available SSID\n\r");
+    uart1_sendStr_no_wait("System init done\n\r");
     request_scan();
 }
 
@@ -72,5 +69,5 @@ user_init()
     system_init_done_cb(init_done_cb);
 
     // setup uart driver
-    uart_init(BIT_RATE_115200, BIT_RATE_115200);
+    uart_init(BIT_RATE_115200, BIT_RATE_921600);
 }
