@@ -11,7 +11,6 @@ two macro definitions:
     #define SSID "YourIoTSSID"
     #define SSID_PASSWORD "YourPreciousPassword"
 
-## Test project
+## Scanner
 
-Simple playground used to experiment with API. By default connects with your
-ssid, and shows various information in UART1 (115200).o
+Simple AP scanner -- shows available APs on UART1 (115200, GPIO2).
