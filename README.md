@@ -13,4 +13,4 @@ two macro definitions:
 
 ## Scanner
 
-Simple AP scanner -- shows available APs on UART1 (115200, GPIO2).
+Simple AP scanner -- shows available APs on UART1 (921600, GPIO2).
