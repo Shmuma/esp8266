@@ -6,21 +6,10 @@
 #include "user_interface.h"
 #include "driver/uart.h"
 
-#define user_procTaskPrio        0
-#define user_procTaskQueueLen    1
-os_event_t    user_procTaskQueue[user_procTaskQueueLen];
-static void loop(os_event_t *events);
+static void request_scan(void);
+static void scan_done_cb(void* arg, STATUS status);
+static void init_done_cb(void);
 
-
-//Main code function
-static void ICACHE_FLASH_ATTR
-loop(os_event_t *events)
-{
-    //    os_printf("Hello\n\r");
-    uart1_sendStr_no_wait("Hello!\n\r");
-    os_delay_us(10000000);
-    system_os_post(user_procTaskPrio, 0, 0 );
-}
 
 
 static void scan_done_cb (void* arg, STATUS status)
@@ -47,14 +36,12 @@ static void scan_done_cb (void* arg, STATUS status)
     }
 
     uart1_sendStr_no_wait("\n\r");
-    wifi_station_scan(NULL, scan_done_cb);
+    request_scan();
 }
 
 
-static void init_done_cb() 
+static void request_scan()
 {
-    uart1_sendStr_no_wait("System init done, scanning for available SSID\n\r");
-
     struct scan_config sc;
     sc.ssid = NULL;
     sc.bssid = NULL;
@@ -62,6 +49,13 @@ static void init_done_cb()
     sc.show_hidden = 1;
 
     wifi_station_scan(&sc, scan_done_cb);
+}
+
+
+static void init_done_cb()
+{
+    uart1_sendStr_no_wait("System init done, scanning for available SSID\n\r");
+    request_scan();
 }
 
 //Init function 
@@ -79,18 +73,4 @@ user_init()
 
     // setup uart driver
     uart_init(BIT_RATE_115200, BIT_RATE_115200);
-
-    /* char ssid[32] = SSID; */
-    /* char password[64] = SSID_PASSWORD; */
-    /* struct station_config stationConf; */
-
-
-    //Set ap settings
-    /* os_memcpy(&stationConf.ssid, ssid, 32); */
-    /* os_memcpy(&stationConf.password, password, 64); */
-    /* wifi_station_set_config(&stationConf); */
-
-    // Start os task
-    //    system_os_task(loop, user_procTaskPrio,user_procTaskQueue, user_procTaskQueueLen);
-    //    system_os_post(user_procTaskPrio, 0, 0 );
 }
